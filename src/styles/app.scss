@@ -1,0 +1,72 @@
+@import "./normalize";
+@import "./colors";
+@import "./icons";
+@import "./fonts";
+@import "./responsive";
+@import "./utility";
+@import "./components";
+@import "./animations";
+@import "./grid";
+
+#app {
+  * {
+    box-sizing: border-box;
+  }
+
+  
+}
+
+.dark-theme {
+  background-color: $black;
+}
+
+.dark-theme body{
+  color: $white;
+}
+
+.light-theme body{
+  color: $black;
+}
+
+.light-theme {
+  background-color: $white;
+}
+
+.dark-theme .navbar-wrapper {
+  background-color: $black;
+}
+.light-theme .navbar-wrapper {
+  background-color: $white;
+}
+
+.dark-theme .description-grey {
+  color: $white;
+}
+
+.light-theme .description-grey {
+  color: rgba(0, 0, 0, 0.667);
+}
+
+.light-theme .sp-nav-link {
+  color: rgba(0, 0, 0, 0.667);
+  &.selected {
+    color: $black;
+  }
+}
+
+.dark-theme .sp-nav-link {
+  color: $white;
+  &.selected {
+    color: $white;
+  }
+}
+
+.light-theme .link-active,
+.light-theme .card-item {
+  color: $black;
+}
+
+.dark-theme .link-active,
+.dark-theme .card-item {
+  color: $white;
+}
