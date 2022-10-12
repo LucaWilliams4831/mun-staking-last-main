@@ -8,7 +8,8 @@
             <div class="border-text">
               {{ parseFloat(state.balance / 1e6).toFixed(2) }} TMUN
             </div>
-            <button @click="() => (state.modalOpen = true)">Stake</button>
+            <button @click="() => {state.modalOpen = true;                   
+            state.validadd = 0;}">Stake</button>
           </div>
           <div class="col card-item">
             <p>Staked</p>
@@ -19,7 +20,8 @@
               <div class="col-md-6">
                 <button
                   class="border"
-                  @click="() => (state.modalUndelegateOpen = true)"
+                  @click="() => {state.modalUndelegateOpen = true;
+                  state.validadd = 0;}"
                 >
                   Undelegate
                 </button>
@@ -27,7 +29,8 @@
               <div class="col-md-6">
                 <button
                   class="border col-md-6"
-                  @click="() => (state.modalRedelegateOpen = true)"
+                  @click="() => {state.modalRedelegateOpen = true;
+                  state.validadd = 0;}"
                 >
                   Redelegate
                 </button>
@@ -39,7 +42,8 @@
             <div class="border-text">
               {{ (total_rewards / 1e6).toFixed(2) }} TMUN
             </div>
-            <button @click="() => (state.modalRewardOpen = true)">Claim</button>
+            <button @click="() => {state.modalRewardOpen = true;
+            state.validadd = 0;}">Claim</button>
           </div>
           <div class="col card-item">
             <p>Unbonding</p>
@@ -121,6 +125,7 @@
                     () => {
                       state.modalManageOpen = true;
                       state.selectedvalidator = validator;
+                      state.validadd = 1;
                     }
                   "
                   >Manage →</a
@@ -166,6 +171,7 @@
                   state.validator_address = e.target.value;
                 }
               "
+              :value="state.selectedvalidator.operator_address"
             >
               <option>Select a validator</option>
               <option
@@ -277,6 +283,7 @@
                   state.validator_address = e.target.value;
                 }
               "
+             :value="state.selectedvalidator.operator_address" 
             >
               <option selected>Select a validator</option>
               <option
@@ -349,7 +356,7 @@
       <template #body>
         <div class="modal-body">
           <div class="comment">
-            Select a new validator and amount of TMUN to redelegate.
+            Select a new validator and amount of TMUN to Redelegate.
           </div>
           <div>
             <div class="label">Source Validator</div>
@@ -383,6 +390,7 @@
                   state.validator_address = e.target.value;
                 }
               "
+              
             >
               <option selected>Select a validator</option>
               <option
@@ -418,6 +426,7 @@
                   state.revalidator_address = e.target.value;
                 }
               "
+              :value="state.selectedvalidator.operator_address"
             >
               <option selected>Select a validator</option>
               <option
@@ -587,6 +596,7 @@
                   state.validator_address = e.target.value;
                 }
               "
+              
             >
               <option selected>Select a validator</option>
               <option
@@ -599,7 +609,7 @@
                 {{ delegator.name }} (
                 {{
                   (() => {
-                    const amount =
+                    let amount =
                       this.rewards_list.rewards?.find(
                         (reward) =>
                           reward.validator_address ===
@@ -695,6 +705,7 @@ export interface State {
   validator_address: string;
   revalidator_address: string;
   forceUpdate: boolean;
+  validadd:number;
   show_active: boolean;
   balance: number;
 }
@@ -727,6 +738,7 @@ export let initialState: State = {
   forceUpdate: false,
   show_active: true,
   balance: 0,
+  validadd:0,
 };
 
 let state: State = reactive(initialState);
@@ -749,8 +761,6 @@ export default defineComponent ({
 
     // composables
     let { address } = useAddress({ $s });
-    console.log("++++++++++++++++++++++++++++") 
-    console.log(address.value) 
     
     let { balances } = useAssets({ $s, opts: { extractChannels: true } });
     let wallet = computed(() => {
@@ -760,9 +770,7 @@ export default defineComponent ({
       if (a[0]?.amount?.amount) val = a[0]?.amount?.amount;
       return "" + val;
     });
-    console.log("------------------------------") 
-    console.log(wallet) 
-
+    
     let resetTx = (): void => {
       state.currentUIState = UI_STATE.FRESH;
       state.forceUpdate = true;
@@ -847,17 +855,19 @@ export default defineComponent ({
           shownotify("Amount is not valid");
           throw new Error();
         }
-
+        if(state.validadd == 1 && state.validator_address === "")
+          state.validator_address = state.selectedvalidator.operator_address
         if (state.validator_address === "") {
           shownotify("Validator Address is not valid");
           throw new Error();
         }
-
+        if(state.validadd == 1 && state.revalidator_address === "")
+          state.revalidator_address = state.selectedvalidator.operator_address
         if (index === 3 && state.revalidator_address === "") {
           shownotify("Destination Validator Address is not valid");
           throw new Error();
         }
-
+        validadd = 0;
         state.modalLoading = true;
 
         let fee: Array<Amount> = state.tx.fees.map((x: AssetForUI) => ({
@@ -938,7 +948,7 @@ export default defineComponent ({
 
           state.forceUpdate = true;
         } catch (e) {
-          console.error(e);
+          // console.error(e);
           shownotify("Somthing's wrong.");
           state.modalLoading = false;
           state.validator_address = "";
@@ -1004,13 +1014,13 @@ export default defineComponent ({
       options: { subscribe: true },
     });
     this.rewards_list = totalrewards_response;
-    console.log(totalrewards_response);
+    
     this.total_rewards = 0;
     for (let i = 0; i < totalrewards_response.rewards.length; i++) {
-      console.log(totalrewards_response.rewards[i].reward[0].amount);
-      this.total_rewards += Number(
-        totalrewards_response.rewards[i].reward[0].amount
-      );
+      if (totalrewards_response.rewards[i]?.reward[0]?.amount)
+        this.total_rewards += Number(
+          totalrewards_response.rewards[i].reward[0].amount
+        );
     }
 
     ///////////////////////////////////////  reward module end //////////////////////////
@@ -1173,11 +1183,11 @@ export default defineComponent ({
         params: { delegator_address: address.value },
         options: { subscribe: true },
       });
-      console.log(totalrewards_response)
+      
       this.rewards_list = totalrewards_response;
       this.total_rewards = 0;
       for (let i = 0; i < totalrewards_response.rewards.length; i++) {
-        console.log(totalrewards_response.rewards[i].reward[0].amount);
+        if (totalrewards_response.rewards[i]?.reward[0]?.amount)
         this.total_rewards += Number(
           totalrewards_response.rewards[i].reward[0].amount
         );
