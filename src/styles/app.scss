@@ -98,4 +98,36 @@
     display: flex;
     line-height: 2.2rem;
   }
+
+}
+.dark-theme .account-dropdown {
+  position: fixed;
+  box-sizing: border-box;
+  top: 7rem;
+  right: 2rem;
+  z-index: 90;
+  background : #222;
+  height: auto;
+  padding: 2.8rem;
+  max-width: 320px;
+  width: 100%;
+  box-shadow: 40px 64px 128px -8px rgb(0 0 0 / 14%);
+  border-radius: 10px;
+}
+.dark-theme .modal-header {
+  h3 {
+    font-family: Inter;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 21px;
+    line-height: 133%;
+    /* identical to box height, or 28px */
+
+    text-align: center;
+    letter-spacing: -0.007em;
+
+    /* light/text */
+
+    color: #ffffff;
+  }
 }

@@ -173,7 +173,7 @@
               "
               :value="state.selectedvalidator.operator_address"
             >
-              <option>Select a validator</option>
+              <option disabled value="">Select a validator</option>
               <option
                 v-for="validator in validators.filter((val) => 
                   val.description.moniker.includes(state.filter_stake_text)
@@ -285,7 +285,7 @@
               "
              :value="state.selectedvalidator.operator_address" 
             >
-              <option selected>Select a validator</option>
+              <option disabled value="">Select a validator</option>
               <option
                 v-for="delegator in delegators_filter.filter((val) => 
                   val.name.includes(state.filter_undeligate_text)
@@ -392,7 +392,7 @@
               "
               
             >
-              <option selected>Select a validator</option>
+              <option disabled value="">Select a validator</option>
               <option
                 v-for="delegator in delegators_filter.filter((val) => 
                   val.name.includes(state.filter_src_val_text)
@@ -428,7 +428,7 @@
               "
               :value="state.selectedvalidator.operator_address"
             >
-              <option selected>Select a validator</option>
+              <option disabled value="">Select a validator</option>
               <option
                 v-for="validator in validators.filter((val) => 
                   val.description.moniker.includes(state.filter_dest_val_text)
@@ -598,7 +598,7 @@
               "
               
             >
-              <option selected>Select a validator</option>
+              <option disabled value="">Select a validator</option>
               <option
                 v-for="delegator in delegators_filter.filter((val) => 
                   val.name.includes(state.filter_claim_text)
@@ -608,13 +608,14 @@
               >
                 {{ delegator.name }} (
                 {{
+                  
                   (() => {
-                    let amount =
+                   const amount =
                       this.rewards_list.rewards?.find(
                         (reward) =>
                           reward.validator_address ===
                           delegator.delegation.validator_address
-                      ).reward[0].amount || 0;
+                      )?.reward[0]?.amount || 0;
                     return (parseFloat(amount) / 1e6).toFixed(2);
                   })()
                 }}
@@ -741,6 +742,7 @@ export let initialState: State = {
   validadd:0,
 };
 
+let that;
 let state: State = reactive(initialState);
 let amount: Amount = { denom: "utmun", amount: "10000000" };
 let shownotify = (param: string) => {
@@ -770,18 +772,25 @@ export default defineComponent ({
       if (a[0]?.amount?.amount) val = a[0]?.amount?.amount;
       return "" + val;
     });
-    
     let resetTx = (): void => {
       state.currentUIState = UI_STATE.FRESH;
       state.forceUpdate = true;
+      that.$forceUpdate();
     };
+    let bootstrapTxAmount = () => {
+      {
+
+      }
+    }
     //watch
     watch(
       () => address.value,
       async () => {
+        
         resetTx();
-      }
+      },
     );
+
   },
   data() {
     let $s = useStore();
@@ -855,19 +864,26 @@ export default defineComponent ({
           shownotify("Amount is not valid");
           throw new Error();
         }
-        if(state.validadd == 1 && state.validator_address === "")
-          state.validator_address = state.selectedvalidator.operator_address
+
         if (state.validator_address === "") {
-          shownotify("Validator Address is not valid");
-          throw new Error();
+          if(state.selectedvalidator === undefined)
+          {
+            shownotify("Validator Address is not valid");
+            throw new Error();
+          }else{
+            state.validator_address = state.selectedvalidator.operator_address;
+          }
         }
-        if(state.validadd == 1 && state.revalidator_address === "")
-          state.revalidator_address = state.selectedvalidator.operator_address
+        
+        if(index === 3 && state.revalidator_address === "")
+          state.revalidator_address = state.selectedvalidator.operator_address;
+        
         if (index === 3 && state.revalidator_address === "") {
           shownotify("Destination Validator Address is not valid");
           throw new Error();
         }
-        validadd = 0;
+        
+        state.validadd = 0;
         state.modalLoading = true;
 
         let fee: Array<Amount> = state.tx.fees.map((x: AssetForUI) => ({
@@ -879,6 +895,8 @@ export default defineComponent ({
         let send;
 
         amount.amount = "" + state.input_number * 1e6;
+        
+
 
         let payload: any = {
           amount,
@@ -990,8 +1008,11 @@ export default defineComponent ({
       options: { subscribe: true },
     });
 
-    this.validators = res.validators;
+    that = this;
 
+    this.validators = res.validators;
+    if(state.selectedvalidator === undefined)
+      state.selectedvalidator = this.validators[0];
     const params = await queryParams({
       params: { status: "true" },
       options: { subscribe: true },
@@ -1067,16 +1088,17 @@ export default defineComponent ({
             unbonding.unbonding_responses[i].entries[j].balance
           );
     }
-
-    // console.log(unbonding)
+    state.filter_src_val_text = "";
+    
     // const totalrewards = await queryDelegatorRewards({
     //   params: { delegatorAddress: address.value },
     //   options: { subscribe: true },
     // });
-    // console.log("**********"),
+    
   },
 
   async updated() {
+    
     if (state.forceUpdate) {
       let $s = useStore();
       let { address } = useAddress({ $s });
@@ -1120,7 +1142,8 @@ export default defineComponent ({
       });
 
       this.validators = res.validators;
-
+      if(state.selectedvalidator === undefined)
+        state.selectedvalidator = this.validators[0];
       const params = await queryParams({
         params: { status: "true" },
         options: { subscribe: true },
@@ -1185,6 +1208,7 @@ export default defineComponent ({
       });
       
       this.rewards_list = totalrewards_response;
+      
       this.total_rewards = 0;
       for (let i = 0; i < totalrewards_response.rewards.length; i++) {
         if (totalrewards_response.rewards[i]?.reward[0]?.amount)
@@ -1192,7 +1216,9 @@ export default defineComponent ({
           totalrewards_response.rewards[i].reward[0].amount
         );
       }
+      
     }
+    state.filter_src_val_text = "";
   },
 });
 </script>
